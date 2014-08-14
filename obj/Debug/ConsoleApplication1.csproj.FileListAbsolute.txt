@@ -1,0 +1,6 @@
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\obj\Debug\ConsoleApplication1.csprojResolveAssemblyReference.cache
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+C:\Users\camron.bute\code\yggdrasil\ProjectStatus\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
