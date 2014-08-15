@@ -14,114 +14,50 @@ namespace ConsoleApplication1
         public const int GRAMS_OF_PROTEIN = 50;
         public const int GRAMS_OF_FAT = 22;
 
-        public const int NUMBER_OF_CYCLES = 100000;
+        public const int NUMBER_OF_MUTATIONS_PER_CYCLE = 15;
+        public const int NUMBER_OF_CYCLES_PER_SIMULATION = 1000;
+        public const int NUMBER_OF_SIMULATIONS = 100;
 
         static void Main(string[] args)
         {
-            var availableParts = new List<Part>{
-		new Part{
-			Name="Whey Powder",
-			UnitName="g",
-			CaloriesPerUnit=3.75,
-			CarbsPerUnit=0.09375,
-			ProteinPerUnit=0.75,
-            FatPerUnit=0.046875
-		},
-		new Part{
-			Name="Oat Flour",
-			UnitName="g",
-			CaloriesPerUnit=4.04,
-			CarbsPerUnit=0.66,
-			ProteinPerUnit=0.15,
-            FatPerUnit=.091
-		},
-		new Part{
-			Name="Maltodextrin",
-			UnitName="g",
-			CaloriesPerUnit=3.82,
-			CarbsPerUnit=.94,
-			ProteinPerUnit=0,
-            FatPerUnit=0
-		},
-		new Part{
-			Name="Oil",
-			UnitName="g",
-			CaloriesPerUnit=8,
-			CarbsPerUnit=.94,
-			ProteinPerUnit=0,
-            FatPerUnit=.9
-		}
-	};
+            var globalBestRecipe = GetBaseRecipe();
 
-            var bestRecipe = new List<RecipeLine>{
-		new RecipeLine
-		{
-			NumberOfUnits = 10,
-			Ingredient = availableParts[0]
-		},
-		new RecipeLine
-		{
-			NumberOfUnits = 10,
-			Ingredient = availableParts[1]
-		},
-		new RecipeLine
-		{
-			NumberOfUnits = 10,
-			Ingredient = availableParts[2]
-		},
-		new RecipeLine
-		{
-			NumberOfUnits = 10,
-			Ingredient = availableParts[3]
-		}
-	};
-
-            DumpRecipe(bestRecipe);
-
-            for (int i = 0; i < NUMBER_OF_CYCLES; i++)
+            for (int simulationCount = 0; simulationCount < NUMBER_OF_SIMULATIONS; simulationCount++)
             {
-                var mutations = new List<List<RecipeLine>>();
-                for (int j = 0; j < 5; j++)
-                {
-                    mutations.Add(Mutate(bestRecipe.Select(item => (RecipeLine)item.Clone()).ToList()));
-                }
+                var simulationBestRecipe = GetBaseRecipe();
 
-                for (int j = 0; j < mutations.Count; j++)
+                for (int cycleCount = 0; cycleCount < NUMBER_OF_CYCLES_PER_SIMULATION; cycleCount++)
                 {
-                    if (GetScore(mutations[j]) < GetScore(bestRecipe))
+                    var mutations = new List<List<RecipeLine>>();
+
+                    for (int mutationCount = 0; mutationCount < NUMBER_OF_MUTATIONS_PER_CYCLE; mutationCount++)
                     {
-                        bestRecipe = mutations[j];
+                        var copyOfBase = simulationBestRecipe.Copy();
+                        var mutationOfBase = Mutate(copyOfBase);
+                        mutations.Add(mutationOfBase);
+                    }
+
+                    for (int mutationIndex = 0; mutationIndex < mutations.Count; mutationIndex++)
+                    {
+                        if (GetScore(mutations[mutationIndex]) < GetScore(simulationBestRecipe))
+                        {
+                            simulationBestRecipe = mutations[mutationIndex];
+                        }
+                    }
+
+                    if (GetScore(simulationBestRecipe) == 0)
+                    {
+                        break;
                     }
                 }
 
-                if (GetScore(bestRecipe) == 0)
+                if(GetScore(simulationBestRecipe) < GetScore(globalBestRecipe) )
                 {
-                    break;
+                    globalBestRecipe = simulationBestRecipe;
                 }
             }
 
-            DumpRecipe(bestRecipe);
-        }
-
-        public class Part
-        {
-            public string Name;
-            public string UnitName;
-            public double CaloriesPerUnit;
-            public double CarbsPerUnit;
-            public double ProteinPerUnit;
-            public double FatPerUnit;
-        }
-
-        public class RecipeLine:ICloneable
-        {
-            public int NumberOfUnits;
-            public Part Ingredient;
-
-            public object Clone()
-            {
-                return new RecipeLine { Ingredient = this.Ingredient, NumberOfUnits = this.NumberOfUnits };
-            }
+            DumpRecipe(globalBestRecipe);
         }
 
         public static double GetScore(List<RecipeLine> recipe)
@@ -161,7 +97,7 @@ namespace ConsoleApplication1
         public static void DumpRecipe(List<RecipeLine> recipe)
         {
             Debug.WriteLine("Recipe ======");
-            foreach(var line in recipe)
+            foreach (var line in recipe)
             {
                 Debug.WriteLine(line.NumberOfUnits + line.Ingredient.UnitName + " of  " + line.Ingredient.Name);
             }
@@ -169,9 +105,78 @@ namespace ConsoleApplication1
             Debug.WriteLine("=============");
         }
 
-        public class Recipe:List<RecipeLine>
+        public static List<Part> GetIngredients()
         {
+            return new List<Part>{
+		new Part{
+			Name="Whey Powder",
+			UnitName="g",
+			CaloriesPerUnit=3.75,
+			CarbsPerUnit=0.09375,
+			ProteinPerUnit=0.75,
+            FatPerUnit=0.046875
+		},
+		new Part{
+			Name="Oat Flour",
+			UnitName="g",
+			CaloriesPerUnit=4.04,
+			CarbsPerUnit=0.66,
+			ProteinPerUnit=0.15,
+            FatPerUnit=.091
+		},
+		new Part{
+			Name="Oil",
+			UnitName="g",
+			CaloriesPerUnit=8,
+			CarbsPerUnit=.94,
+			ProteinPerUnit=0,
+            FatPerUnit=.9
+		}
+	};
+        }
 
+        public static List<RecipeLine> GetBaseRecipe()
+        {
+            var availableParts = GetIngredients();
+
+            var recipe = new List<RecipeLine>();
+
+            foreach(var part in availableParts)
+            {
+                recipe.Add(new RecipeLine { NumberOfUnits = 10, Ingredient = part });
+            }
+
+            return recipe;
+
+        }
+    }
+
+    public static class Extensions
+    {
+        public static List<RecipeLine> Copy(this List<RecipeLine> original)
+        {
+            return original.Select(item => (RecipeLine)item.Clone()).ToList();
+        }
+    }
+
+    public class Part
+    {
+        public string Name;
+        public string UnitName;
+        public double CaloriesPerUnit;
+        public double CarbsPerUnit;
+        public double ProteinPerUnit;
+        public double FatPerUnit;
+    }
+
+    public class RecipeLine : ICloneable
+    {
+        public int NumberOfUnits;
+        public Part Ingredient;
+
+        public object Clone()
+        {
+            return new RecipeLine { Ingredient = this.Ingredient, NumberOfUnits = this.NumberOfUnits };
         }
     }
 }
